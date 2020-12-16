@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+dataset/
+ICME2019 ASDSaliency Otherteams/
+
 # C extensions
 *.so
 
