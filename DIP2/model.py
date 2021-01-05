@@ -89,4 +89,4 @@ if __name__=='__main__':
     model = SegNet()
     out = model(test_inp)
     print(out.shape)
-    print(model)
+    # print(model)
