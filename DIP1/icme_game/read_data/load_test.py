@@ -13,13 +13,8 @@ import csv
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from skimage import io, transform
 
-def is_image_file(filename):
-  filename_lower = filename.lower()
-  return any(filename_lower.endswith(extension) for extension in ['.png', '.jpg', '.bmp', '.mat'])
 
 def crop(path_csv, resize = 224):
-    #print(path_csv)
-    
     result = []
     #load and resize image
     im = Image.open(path_csv)
@@ -93,8 +88,9 @@ def Data_filtering(train_index, beta=5, m=0):
     batch = []  
     image_dir = dataset_dir + mode[0]+ str(index).rjust(3,'0')+"/"  
     index_score = {}
+    test_dir = dataset_dir+ "score_and_sort/Test/sort/"+str(index).rjust(3,'0')+".csv"
     #score_dir = dataset_dir+ "score_and_sort/Training/score/"+str(index).rjust(3,'0')+"_score.csv"
-    score_dir = dataset_dir+ "score_and_sort/Training/sort/"+str(index).rjust(3,'0')+".csv"
+    #score_dir = dataset_dir+ "score_and_sort/Training/sort/"+str(index).rjust(3,'0')+".csv"
     print(image_dir)
     print(score_dir)
     #input()

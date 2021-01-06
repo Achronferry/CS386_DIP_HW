@@ -10,6 +10,8 @@ import time
 import numpy as np
 import os
 from read_data import load_batch
+import warnings
+warnings.simplefilter("ignore")
 
 #load resnet
 def network():
@@ -30,16 +32,17 @@ def network():
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = network().to(device)  
 loss_func = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(),lr = 1e-3)
+optimizer = optim.Adam(model.parameters(),lr = 0.1)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1,last_epoch=-1)
 
-
-def train(model,loss_func,optimizer,batch_size = 16, epochs = 100):
+def train(model,loss_func,optimizer,choose,batch_size = 32, epochs = 50):
     for epoch in range(epochs):
+        scheduler.step()
         train_loss = 0
         size = 0
-        for length in range(1000):
-            train_data,labels = load_batch.get_batch(choose=1, batch_size=batch_size)
-            print("length",length)
+        for length in range(5000):
+            train_data,labels = load_batch.get_batch(choose=choose, batch_size=batch_size)
+            # print("length",length)
             for i in range(len(train_data)):
                 batch_data = train_data[i]
                 batch_label = labels[i]
@@ -47,17 +50,16 @@ def train(model,loss_func,optimizer,batch_size = 16, epochs = 100):
                 batch_label = torch.from_numpy(batch_label).long().to(device)
                 optimizer.zero_grad()
                 outputs = model(batch_data)
-                print(batch_label.size())
-                print(outputs.size())
+ 
                 loss = loss_func(outputs, batch_label)
                 loss.backward()
                 optimizer.step()
                 train_loss += loss.item()*batch_data.size(0)
                 size += batch_data.size(0)
         print("train ---- epoch == > {},loss==>{}".format(epoch,train_loss/size))
-        torch.save(model,'resnet'+"1:"+str(epoch)+'.pt')
+        torch.save(model,str(choose)+"/resnet"+str(epoch)+'.pt')
 
 if __name__ =="__main__":
-    train(model,loss_func,optimizer)
+    train(model,loss_func,optimizer,0)
     # model = torch.load("resnet0.pt")
     # print(model)
