@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# ignore models
+DIP1/icme_game/model/*.pt
+DIP1/icme_game/model/*.txt
+
+
 dataset/
 ICME2019 ASDSaliency Otherteams/
 
