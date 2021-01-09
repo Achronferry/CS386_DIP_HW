@@ -44,7 +44,7 @@ if __name__ == "__main__":
     scores_avg = evaluate(test_dataset)
     print(scores_avg)
 
-    for epoch in range(10):
+    for epoch in range(30):
         epoch_loss = 0
         for i, (x, y) in enumerate(train_dataset.batch(16)):
             x, y = x.to(device), y.to(device)
@@ -58,5 +58,8 @@ if __name__ == "__main__":
         scores_avg = evaluate(test_dataset)
         print(epoch, scores_avg)
         print()
+        model_path = f'models/epoch-{epoch}.pth'
+        torch.save(model.state_dict(), model_path)
+
 
 

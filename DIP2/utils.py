@@ -5,15 +5,12 @@ import cv2
 import torch
 
 
-
 def save_saliencymap(saliencymap, image_filename, output_path):
     EXTENSION = 'pgm'
 
     image_name = ('.').join(os.path.basename(image_filename).split('.')[:-1])
     filename = "%s/%s.%s" % (output_path, image_name, EXTENSION)
     cv2.imwrite(filename, saliencymap)
-
-
 
 
 def calc_loss(pred, truth, bias, alpha=1.1, beta=0.1):
@@ -32,7 +29,6 @@ def calc_loss(pred, truth, bias, alpha=1.1, beta=0.1):
     return loss
 
 
-
 class Dataset():
     def __init__(self, images, sailiency_maps, shape):
         self.shape = shape
@@ -42,7 +38,6 @@ class Dataset():
         self.maps = np.stack([cv2.resize(i, self.shape[::-1]).astype(np.float32) for i in sailiency_maps])
         self.len = len(self.images)
   
-
     def preprocess_images(self, original_image, shape):
         image = cv2.resize(original_image, shape[::-1]).astype(np.float32)
         # Remove train image mean (imagenet)
@@ -52,7 +47,6 @@ class Dataset():
 
         image = image.transpose(2,0,1)
         return image
-
 
     def batch(self, batch_size, device=torch.device('cpu')):
         ids = list(range(self.len))
@@ -64,11 +58,10 @@ class Dataset():
             batch_y = torch.tensor(self.maps[ids[ptr:ptr+batch_size]]).to(device)
             yield batch_x, batch_y
             ptr += batch_size
-        
-
 
     def __len__(self):
         return self.len
+
 
 def load_dataset(path, shape=(300,400), test_rate=0.2):
     image_path = os.path.join(path,'Images')
@@ -90,6 +83,49 @@ def load_dataset(path, shape=(300,400), test_rate=0.2):
     return train_set, test_set
 
 
+class Testset():
+    def __init__(self, images, shape):
+        self.shape = shape
+        self.images = np.stack([self.preprocess_images(i, self.shape) for i in images])
+
+        self.len = len(self.images)
+
+    def preprocess_images(self, original_image, shape):
+        image = cv2.resize(original_image, shape[::-1]).astype(np.float32)
+        # Remove train image mean (imagenet)
+        image[:, :, 0] -= 103.939
+        image[:, :, 1] -= 116.779
+        image[:, :, 2] -= 123.68
+
+        image = image.transpose(2,0,1)
+        return image
+
+    def batch(self, batch_size, device=torch.device('cpu')):
+        ids = list(range(self.len))
+        random.shuffle(ids)
+
+        ptr = 0
+        while ptr+batch_size < self.len:
+            batch_x = torch.tensor(self.images[ids[ptr:ptr+batch_size]]).to(device)
+            yield batch_x
+            ptr += batch_size
+
+    def __len__(self):
+        return self.len
+
+
+def load_test(image_path, shape=(300,400)):
+    image_names = list(filter(lambda x: x[-4:]!='png', os.listdir(image_path)))
+    image_names.sort(key=lambda k: int(k[:-4]))
+
+    images = []
+    for i in image_names:
+        i_path = os.path.join(image_path, i)
+        images.append(cv2.imread(i_path))
+    test_set = Testset(images, shape)
+    return test_set
+
+
 if __name__=='__main__':
     a,b = load_dataset('dataset/TrainingData')
     print(len(a))
@@ -99,4 +135,9 @@ if __name__=='__main__':
         print(y.shape)
     pass
 
+    a = load_test('dataset/task1/Image')
+    print(len(a))
+    for x in a.batch(1):
+        print(x.shape)
+    pass
 
